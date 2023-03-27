@@ -32,6 +32,9 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
+from torchmetrics.image.kid import KernelInceptionDistance
+from torchmetrics.image.fid import FrechetInceptionDistance
+import torch
 
 try:
     import wandb
@@ -47,6 +50,7 @@ if __name__ == '__main__':
     opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
+    opt.split = 'test'
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
@@ -65,6 +69,8 @@ if __name__ == '__main__':
     # test with eval mode. This only affects layers like batchnorm and dropout.
     # For [pix2pix]: we use batchnorm and dropout in the original pix2pix. You can experiment it with and without eval() mode.
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
+    synthesized_images = []
+    real_images = []
     if opt.eval:
         model.eval()
     for i, data in enumerate(dataset):
@@ -73,8 +79,25 @@ if __name__ == '__main__':
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
         visuals = model.get_current_visuals()  # get image results
+        synthesized_images.append(visuals['fake_B'])
+        real_images.append(visuals['real_B'])
         img_path = model.get_image_paths()     # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
         save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize, use_wandb=opt.use_wandb)
     webpage.save()  # save the HTML
+
+    # calculate KID
+    kid = KernelInceptionDistance()
+    kid.update(torch.cat(synthesized_images, dim=0), real=False)
+    kid.update(torch.cat(real_images, dim=0), real=True)
+    kid_mean, kid_std = kid.compute()
+    print('KID: ', (kid_mean, kid_std))
+
+    # calculate FID
+    fid = FrechetInceptionDistance()
+    fid.update(torch.cat(synthesized_images, dim=0), real=False)
+    fid.update(torch.cat(real_images, dim=0), real=True)
+    fid_mean, fid_std = fid.compute()
+    print('FID: ', (fid_mean, fid_std))
+
