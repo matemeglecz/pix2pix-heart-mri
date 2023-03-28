@@ -4,7 +4,7 @@ import numpy as np
 from skimage.transform import resize
 
 TEST_PATIENTS = [7, 21, 30, 33, 34, 37, 41, 58, 86, 110, 123, 135, 145, 148, 155, 163, 164, 172, 177, 183, 190, 191, 207, 212, 220]
-VAL_PATIENTS  = [3, 4, 12, 14, 19, 23, 28, 35, 40, 46, 50, 55, 98, 107, 130, 137, 156, 162, 176, 182, 185, 197, 209, 213, 219]
+VAL_PATIENTS  = []#[3, 4, 12, 14, 19, 23, 28, 35, 40, 46, 50, 55, 98, 107, 130, 137, 156, 162, 176, 182, 185, 197, 209, 213, 219]
 TRAIN_PATIENTS = [id for id in range(1, 222+1) if id not in TEST_PATIENTS and id not in VAL_PATIENTS]
 INTEROBSERVER_PATIENTS = range(223, 262+1)
 
@@ -73,9 +73,8 @@ class SeDataset(BaseDataset):
             else:
                 transformed = self.transforms(image=sample, mask=target)
             sample, target = transformed["image"], transformed["mask"]
-
-        # Convert images to channels_first mode, from albumentations' 2d grayscale images
         
+        # Convert images to channels_first mode, from albumentations' 2d grayscale images
         sample = resize(sample, (256, 256), anti_aliasing=True)
         sample = np.expand_dims(sample, 0)
         target = resize(target, (256, 256), anti_aliasing=False, mode='edge', preserve_range=True, order=0)

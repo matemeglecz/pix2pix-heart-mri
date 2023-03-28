@@ -19,7 +19,7 @@ else:
     VisdomExceptionBase = ConnectionError
 
 
-def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_wandb=False):
+def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_wandb=False, save_name=None):
     """Save images to the disk.
 
     Parameters:
@@ -33,7 +33,10 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_w
     """
     image_dir = webpage.get_image_dir()
     short_path = ntpath.basename(image_path[0])
-    name = os.path.splitext(short_path)[0]
+    if save_name is None:
+        name = os.path.splitext(short_path)[0]
+    else:
+        name=save_name
 
     webpage.add_header(name)
     ims, txts, links = [], [], []
@@ -47,8 +50,9 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_w
         ims.append(image_name)
         txts.append(label)
         links.append(image_name)
+        image_numpy = util.tensor2im_dicom(im_data, label)
         if use_wandb:
-            ims_dict[label] = wandb.Image(im)
+            ims_dict[label] = wandb.Image(image_numpy)
     webpage.add_images(ims, txts, links, width=width)
     if use_wandb:
         wandb.log(ims_dict)
@@ -194,8 +198,7 @@ class Visualizer():
             self.saved = True
             # save images to the disk
             for label, image in visuals.items():
-                image_numpy = image.data.cpu().float().numpy()
-                print(image_numpy.shape)
+                image_numpy = image.data.cpu().float().numpy()                
                 img_path = os.path.join(self.img_dir, 'epoch%.3d_%s.png' % (epoch, label))
                 plt.imsave(img_path,image_numpy[0, 0, :, :], cmap=plt.cm.bone)
                 #util.save_image(image_numpy, img_path)
