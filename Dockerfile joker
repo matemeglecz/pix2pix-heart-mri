@@ -1,0 +1,28 @@
+FROM nvidia/cuda:10.2-runtime-centos7
+
+RUN yum install gcc openssl-devel bzip2-devel libffi-devel zlib-devel -y
+RUN curl https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz --output Python-3.8.0.tgz
+RUN tar xzf Python-3.8.0.tgz
+RUN cd Python-3.8.0 && ./configure --enable-optimizations && yum install make -y && make altinstall 
+
+RUN curl https://raw.githubusercontent.com/dvershinin/apt-get-centos/master/apt-get.sh -o /usr/local/bin/apt-get
+RUN chmod 0755 /usr/local/bin/apt-get
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN yum -y install epel-release && yum clean all
+RUN curl https://bootstrap.pypa.io/get-pip.py --output get-pip.py && python3.8 get-pip.py && pip -V
+RUN pip install --upgrade pip
+WORKDIR /app
+
+COPY requirements-joker.txt requirements-joker.txt
+RUN pip install torch==1.12.1+cu102 torchvision==0.13.1+cu102 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu102
+RUN pip install -r requirements-joker.txt
+
+
+COPY data data
+COPY models models
+COPY options options
+COPY util util
+COPY test.py test.py
+COPY train.py train.py
+
+RUN ls

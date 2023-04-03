@@ -1,0 +1,28 @@
+FROM nvidia/cuda:10.2-runtime-ubuntu18.04
+
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt-get update && apt-get upgrade -y && apt-get clean
+
+RUN apt-get install -y curl python3.8 python3.8-dev python3.8-distutils
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+RUN update-alternatives --set python /usr/bin/python3.8
+
+RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py --force-reinstall && \
+    rm get-pip.py
+
+WORKDIR /app
+
+COPY requirements-joker.txt requirements-joker.txt
+RUN pip install torch==1.12.1+cu102 torchvision==0.13.1+cu102 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu102
+RUN pip install -r requirements-joker.txt
+
+
+COPY data data
+COPY models models
+COPY options options
+COPY util util
+COPY test.py test.py
+COPY train.py train.py
+
+RUN ls

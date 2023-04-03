@@ -27,8 +27,11 @@ import cv2
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import wandb
+import torch
 
 if __name__ == '__main__':
+    torch.cuda.empty_cache()
     opt = TrainOptions().parse()   # get training options
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     dataset_size = len(dataset)    # get the number of images in the dataset.
@@ -72,8 +75,7 @@ if __name__ == '__main__':
                 losses = model.get_current_losses()
                 t_comp = (time.time() - iter_start_time) / opt.batch_size
                 visualizer.print_current_losses(epoch, epoch_iter, losses, t_comp, t_data)
-                if opt.display_id > 0:
-                    visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
+                visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
             if total_iters % opt.save_latest_freq == 0:   # cache our latest model every <save_latest_freq> iterations
                 print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
@@ -87,3 +89,8 @@ if __name__ == '__main__':
             model.save_networks(epoch)
 
         print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.n_epochs + opt.n_epochs_decay, time.time() - epoch_start_time))
+
+    
+    wandb.save('./checkpoints/' + opt.name + 'latest_net_D.pth')
+    wandb.save('./checkpoints/' + opt.name + 'latest_net_G.pth')
+    wandb.save('./checkpoints/' + opt.name + 'train_opt.txt')

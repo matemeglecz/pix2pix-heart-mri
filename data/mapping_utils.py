@@ -26,9 +26,7 @@ def check_datset(root):
         "T2_map_base",
         "T2_map_mid_",
         "T2_Mapping_"]
-    allowed_slices = required_slices 
-    '''+ 
-    [
+    allowed_slices = required_slices + [
         "T1_map_apex_uncorrected",
         "T1_map_apex_contrast",
         "T1_map_base_uncorrected",
@@ -38,7 +36,7 @@ def check_datset(root):
         "T2_map_apex_uncorrected",
         "T2_map_base_uncorrected",
         "T2_map_mid_uncorrected"]
-    '''
+    
     patients = sorted(glob.glob(os.path.join(root,'*')))
     
     for patient_folder in patients:
