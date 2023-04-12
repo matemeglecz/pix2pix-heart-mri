@@ -1,7 +1,10 @@
-from data.base_dataset import BaseDataset, get_transform
+from data.base_dataset import BaseDataset, get_transform, get_params
 import data.mapping_utils as mapping_utils
 import numpy as np
 from skimage.transform import resize
+import torchvision.transforms as transforms
+import random
+import torch
 
 TEST_PATIENTS = [7, 21, 30, 33, 34, 37, 41, 58, 86, 110, 123, 135, 145, 148, 155, 163, 164, 172, 177, 183, 190, 191, 207, 212, 220]
 VAL_PATIENTS  = []#[3, 4, 12, 14, 19, 23, 28, 35, 40, 46, 50, 55, 98, 107, 130, 137, 156, 162, 176, 182, 185, 197, 209, 213, 219]
@@ -19,8 +22,9 @@ class SeDataset(BaseDataset):
         
         parser.set_defaults(input_nc=1)
         parser.set_defaults(output_nc=1)
-        parser.set_defaults(load_size=256)
+        parser.set_defaults(load_size=512)
         parser.set_defaults(crop_size=256)
+        parser.set_defaults(no_flip=True)
 
         return parser
 
@@ -76,13 +80,33 @@ class SeDataset(BaseDataset):
         
         # Convert images to channels_first mode, from albumentations' 2d grayscale images
         sample = resize(sample, (256, 256), anti_aliasing=True)
-        sample = np.expand_dims(sample, 0)
+        
         target = resize(target, (256, 256), anti_aliasing=False, mode='edge', preserve_range=True, order=0)
 
-        instance_tensor = 0
+        sample = np.expand_dims(sample, 0)
+        target = np.expand_dims(target, 0)
 
-        input_dict = {'B': np.expand_dims(target.astype(np.float32), axis=0),
-                      'A': sample.astype(np.float32),
+        sample = sample.astype(np.float32)
+        target = target.astype(np.float32)
+
+        if self.opt.preprocess != 'none' and random.random() < 0.33:
+            # apply the same transform to both A and B            
+            transform_params = get_params(self.opt, sample.shape[1:])
+            B_transform = get_transform(self.opt, transform_params, method=transforms.InterpolationMode.NEAREST, grayscale=(self.opt.input_nc == 1), convert=False)
+            A_transform = get_transform(self.opt, transform_params, grayscale=(self.opt.output_nc == 1), convert=False)
+                      
+            sample = torch.from_numpy(sample)
+            target = torch.from_numpy(target)
+            
+            sample = A_transform(sample)
+            target = B_transform(target)
+
+            sample = sample.numpy()
+            target = target.numpy()
+        
+
+        input_dict = {'B': target,
+                      'A': sample,
                       'B_paths': target_path,
                       'A_paths': path,
                       }
@@ -105,3 +129,12 @@ class SeDataset(BaseDataset):
 
     def to_mapping_only(self):
         self.samples = [(x, t) for x, t in self.samples if "_Mapping_" in x]
+
+
+    def __crop(img, pos, size):
+        ow, oh = img.shape[1:]
+        x1, y1 = pos
+        tw = th = size
+        if (ow > tw or oh > th):
+            return img.crop((x1, y1, x1 + tw, y1 + th))
+        return img

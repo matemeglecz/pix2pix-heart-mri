@@ -90,7 +90,9 @@ if __name__ == '__main__':
 
         print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.n_epochs + opt.n_epochs_decay, time.time() - epoch_start_time))
 
-    
-    wandb.save('./checkpoints/' + opt.name + 'latest_net_D.pth')
-    wandb.save('./checkpoints/' + opt.name + 'latest_net_G.pth')
-    wandb.save('./checkpoints/' + opt.name + 'train_opt.txt')
+
+    model.save_networks('latest')
+
+    wandb.save('./checkpoints/' + opt.name + '/latest_net_D.pth')
+    wandb.save('./checkpoints/' + opt.name + '/latest_net_G.pth')
+    wandb.save('./checkpoints/' + opt.name + '/train_opt.txt')
