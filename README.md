@@ -1,8 +1,3 @@
-
-<img src='imgs/horse2zebra.gif' align="right" width=384>
-
-<br><br><br>
-
 # Pix2Pix for Heart MRI synthesis
 
 !!! The original code is located at [CycleGAN and pix2pix in PyTorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) !!!
@@ -27,6 +22,11 @@ The `Dockerfile-joker` file contains the required packages to run the code with 
 
 The `Dockerfile-joker-ubuntu` file contains the required packages to run the code with CUDA 10.2 on ubuntu 18.04.
 
+Mask           |  Generated image
+:-------------------------:|:-------------------------:
+![2023-04-25 162007_real_A](https://github.com/matemeglecz/pix2pix-heart-mri/assets/58141904/f7e1f861-cf86-4a80-85e9-8a97beca208d)  |  ![2023-04-25 162007_fake_B](https://github.com/matemeglecz/pix2pix-heart-mri/assets/58141904/7f443e2f-51ad-49d4-a219-8124b151eed8)
+
+<br><br><br>
 
 
 # CycleGAN and pix2pix in PyTorch
