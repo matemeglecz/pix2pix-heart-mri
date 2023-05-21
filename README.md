@@ -3,6 +3,32 @@
 
 <br><br><br>
 
+# Pix2Pix for Heart MRI synthesis
+
+!!! The original code is located at [CycleGAN and pix2pix in PyTorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) !!!
+
+The code is modified to work with dicom images and to train a model to generate heart MRI images from a segmentation mask.
+The SeDataset class contains the code for reading the dicom images and the segmentation masks. It's implementation is based on the class located at the `mapping_dataset.py` file.
+For the SeDataset the helper functions are located in the `mapping_utils.py` file.
+
+The original `util\visualizer.py` and `util\util.py` file is modified to work with dicom images, images are saved in the bone colormap.
+
+The `test.py` file is modified to log its results to wandb and to calculate the frechet inception distance (FID) and kernel inception distance (KID) between the generated images and the real images.
+
+The `train.py` file is modified to save the last model to wandb.
+
+The `requirements-gpu.txt` file contains the required packages to run the code with CUDA 11.6.
+
+The `requirements-joker.txt` file contains the required packages to run the code with CUDA 10.2.
+
+The docker image built from the `Dockerfile` file contains the required packages to run the code with CUDA 11.6.
+
+The `Dockerfile-joker` file contains the required packages to run the code with CUDA 10.2 on centOS 7.
+
+The `Dockerfile-joker-ubuntu` file contains the required packages to run the code with CUDA 10.2 on ubuntu 18.04.
+
+
+
 # CycleGAN and pix2pix in PyTorch
 
 **New**:  Please check out [contrastive-unpaired-translation](https://github.com/taesungp/contrastive-unpaired-translation) (CUT), our new unpaired image-to-image translation model that enables fast and memory-efficient training.
